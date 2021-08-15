@@ -1,5 +1,3 @@
-//!TODO figure out how to check if symbol exists
-
 package main
 
 import (
@@ -13,8 +11,6 @@ import (
 	"strconv"
 	"time"
 )
-
-var baseUrl = "https://api.binance.com" //consider putting inside makeGetRequest
 
 type Depth struct {
 	Bids         [][2]string `json:"bids"`
@@ -31,7 +27,7 @@ func main() {
 	log.SetOutput(logFile)
 
 	for {
-		depth1, err := getDepth("DASHUSDT", 15)
+		depth1, err := getDepth("BTCUSDT", 15)
 		if err != nil {
 			log.Fatal(err)
 			return
@@ -58,7 +54,7 @@ func main() {
 func getDepth(symbol string, limit int) (Depth, error) {
 	var endUrl string
 	depth1 := Depth{}
-	url := baseUrl + "/api/v3/depth"
+	url := "https://api.binance.com/api/v3/depth"
 
 	if symbol == "" {
 		return depth1, errors.New("empty symbol")
@@ -109,18 +105,6 @@ func getDepth(symbol string, limit int) (Depth, error) {
 	return depth1, err
 }
 
-func getExchangeInfo(symbol string) ([]byte, error) {
-	var endUrl string
-	url := baseUrl + "/api/v3/exchangeInfo"
-	if symbol == "" {
-		endUrl = ""
-	} else {
-		endUrl = "?symbol=" + symbol
-	}
-	url = url + endUrl
-	return makeGetRequest(url)
-}
-
 func makeGetRequest(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -129,6 +113,11 @@ func makeGetRequest(url string) ([]byte, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
+	}
+	// abort if response came with any error code
+	if resp.StatusCode >= 400 {
+		fmt.Println(string(body))
+		log.Fatal(string(body))
 	}
 	return body, err
 }
