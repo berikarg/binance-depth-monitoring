@@ -1,3 +1,5 @@
+//!TODO figure out how to check if symbol exists
+
 package main
 
 import (
@@ -7,46 +9,89 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 var baseUrl = "https://api.binance.com" //consider putting inside makeGetRequest
 
 type Depth struct {
-	LastUpdateId int         `json:"lastUpdateId"`
 	Bids         [][2]string `json:"bids"`
 	Asks         [][2]string `json:"asks"`
+	BidsOrderSum float64
+	AsksOrderSum float64
 }
 
 func main() {
-	body, err := getDepth("BTCUSDT", 5)
+
+	logFile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
-		return
+		log.Fatal(err)
 	}
 
-	depth1 := Depth{}
-	err = json.Unmarshal(body, &depth1)
+	log.SetOutput(logFile)
+
+	depth1, err := getDepth("BTCUSDT", 12)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
+		log.Fatal(err)
 		return
 	}
-	fmt.Println(depth1.Asks[0][1])
+	fmt.Println(depth1.AsksOrderSum)
 }
 
-func getDepth(symbol string, limit int) ([]byte, error) {
+// returns depth of a symbol for limits between 1 and 100
+func getDepth(symbol string, limit int) (Depth, error) {
 	var endUrl string
+	depth1 := Depth{}
 	url := baseUrl + "/api/v3/depth"
+
 	if symbol == "" {
-		return nil, errors.New("empty symbol")
+		return depth1, errors.New("empty symbol")
 	}
-	if limit <= 0 && limit > 5000 {
-		return nil, errors.New("invalid limit")
+	if limit <= 0 || limit > 100 {
+		return depth1, errors.New("invalid limit")
 	}
 	endUrl = "?symbol=" + symbol
 	endUrl = endUrl + "&limit=" + strconv.Itoa(limit)
 	url = url + endUrl
-	return makeGetRequest(url)
+
+	body, err := makeGetRequest(url)
+	if err != nil {
+		log.Fatal(err)
+		return depth1, err
+	}
+	err = json.Unmarshal(body, &depth1)
+	if err != nil {
+		log.Fatal(err)
+		return depth1, err
+	}
+
+	if len(depth1.Bids) > limit {
+		depth1.Bids = depth1.Bids[:limit]
+		depth1.Asks = depth1.Asks[:limit]
+	}
+
+	//calculate the sum of bid orders
+	for _, v := range depth1.Bids {
+		bidOrder, err := strconv.ParseFloat(v[1], 64)
+		if err != nil {
+			log.Fatal(err)
+			return depth1, err
+		}
+		depth1.BidsOrderSum += bidOrder
+	}
+
+	//calculate the sum of ask orders
+	for _, v := range depth1.Asks {
+		askOrder, err := strconv.ParseFloat(v[1], 64)
+		if err != nil {
+			log.Fatal(err)
+			return depth1, err
+		}
+		depth1.AsksOrderSum += askOrder
+	}
+
+	return depth1, err
 }
 
 func getExchangeInfo(symbol string) ([]byte, error) {
