@@ -1,5 +1,3 @@
-//!TODO figure out how to check if symbol exists
-
 package main
 
 import (
@@ -11,9 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
-
-var baseUrl = "https://api.binance.com" //consider putting inside makeGetRequest
 
 type Depth struct {
 	Bids         [][2]string `json:"bids"`
@@ -23,27 +20,41 @@ type Depth struct {
 }
 
 func main() {
-
 	logFile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	log.SetOutput(logFile)
 
-	depth1, err := getDepth("BTCUSDT", 12)
-	if err != nil {
-		log.Fatal(err)
-		return
+	for {
+		depth1, err := getDepth("BTCUSDT", 15)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		bids, err := json.MarshalIndent(depth1.Bids, "", "\t")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Bids: ", string(bids))
+
+		asks, err := json.MarshalIndent(depth1.Asks, "", "\t")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Asks: ", string(asks))
+
+		fmt.Println("Bids Order Sum: ", depth1.BidsOrderSum)
+		fmt.Println("Asks Order Sum: ", depth1.AsksOrderSum)
+		time.Sleep(time.Second)
 	}
-	fmt.Println(depth1.AsksOrderSum)
 }
 
 // returns depth of a symbol for limits between 1 and 100
 func getDepth(symbol string, limit int) (Depth, error) {
 	var endUrl string
 	depth1 := Depth{}
-	url := baseUrl + "/api/v3/depth"
+	url := "https://api.binance.com/api/v3/depth"
 
 	if symbol == "" {
 		return depth1, errors.New("empty symbol")
@@ -51,7 +62,7 @@ func getDepth(symbol string, limit int) (Depth, error) {
 	if limit <= 0 || limit > 100 {
 		return depth1, errors.New("invalid limit")
 	}
-	endUrl = "?symbol=" + symbol
+	endUrl = "?symbol=" + symbol // if symbol is not 5, 10, 20, 50 it will return 100
 	endUrl = endUrl + "&limit=" + strconv.Itoa(limit)
 	url = url + endUrl
 
@@ -94,18 +105,6 @@ func getDepth(symbol string, limit int) (Depth, error) {
 	return depth1, err
 }
 
-func getExchangeInfo(symbol string) ([]byte, error) {
-	var endUrl string
-	url := baseUrl + "/api/v3/exchangeInfo"
-	if symbol == "" {
-		endUrl = ""
-	} else {
-		endUrl = "?symbol=" + symbol
-	}
-	url = url + endUrl
-	return makeGetRequest(url)
-}
-
 func makeGetRequest(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -114,6 +113,11 @@ func makeGetRequest(url string) ([]byte, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
+	}
+	// abort if response came with any error code
+	if resp.StatusCode >= 400 {
+		fmt.Println(string(body))
+		log.Fatal(string(body))
 	}
 	return body, err
 }
