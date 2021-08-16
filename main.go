@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Depth struct {
@@ -22,45 +23,32 @@ type Depth struct {
 func main() {
 	logFile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	log.SetOutput(logFile)
 
-	for {
-		depth1, err := getDepth("BTCUSDT", 15)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		bids, err := json.MarshalIndent(depth1.Bids, "", "\t")
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Bids: ", string(bids))
+	router := gin.Default()
+	router.GET("/:symbol/:limit", getDepth)
 
-		asks, err := json.MarshalIndent(depth1.Asks, "", "\t")
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Asks: ", string(asks))
-
-		fmt.Println("Bids Order Sum: ", depth1.BidsOrderSum)
-		fmt.Println("Asks Order Sum: ", depth1.AsksOrderSum)
-		time.Sleep(time.Second)
-	}
+	router.Run("localhost:8080")
 }
 
 // returns depth of a symbol for limits between 1 and 100
-func getDepth(symbol string, limit int) (Depth, error) {
+func getDepth(c *gin.Context) {
 	var endUrl string
 	depth1 := Depth{}
 	url := "https://api.binance.com/api/v3/depth"
-
-	if symbol == "" {
-		return depth1, errors.New("empty symbol")
+	symbol := c.Param("symbol")
+	limit, err := strconv.Atoi(c.Param("limit"))
+	if err != nil {
+		log.Print(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid parameter limit"})
+		return
 	}
 	if limit <= 0 || limit > 100 {
-		return depth1, errors.New("invalid limit")
+		log.Print(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid limit range"})
+		return
 	}
 	endUrl = "?symbol=" + symbol // if symbol is not 5, 10, 20, 50 it will return 100
 	endUrl = endUrl + "&limit=" + strconv.Itoa(limit)
@@ -68,13 +56,15 @@ func getDepth(symbol string, limit int) (Depth, error) {
 
 	body, err := makeGetRequest(url)
 	if err != nil {
-		log.Fatal(err)
-		return depth1, err
+		log.Print(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
 	err = json.Unmarshal(body, &depth1)
 	if err != nil {
-		log.Fatal(err)
-		return depth1, err
+		log.Print(err)
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if len(depth1.Bids) > limit {
@@ -82,42 +72,46 @@ func getDepth(symbol string, limit int) (Depth, error) {
 		depth1.Asks = depth1.Asks[:limit]
 	}
 
-	//calculate the sum of bid orders
-	for _, v := range depth1.Bids {
-		bidOrder, err := strconv.ParseFloat(v[1], 64)
-		if err != nil {
-			log.Fatal(err)
-			return depth1, err
-		}
-		depth1.BidsOrderSum += bidOrder
-	}
+	calcOrderSum(&depth1)
 
-	//calculate the sum of ask orders
-	for _, v := range depth1.Asks {
-		askOrder, err := strconv.ParseFloat(v[1], 64)
-		if err != nil {
-			log.Fatal(err)
-			return depth1, err
-		}
-		depth1.AsksOrderSum += askOrder
-	}
-
-	return depth1, err
+	c.IndentedJSON(http.StatusOK, depth1)
 }
 
 func makeGetRequest(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return nil, err
 	}
-	// abort if response came with any error code
+	// notify if response came with any error code
 	if resp.StatusCode >= 400 {
-		fmt.Println(string(body))
-		log.Fatal(string(body))
+		log.Println(string(body))
+		return nil, errors.New(string(body))
 	}
 	return body, err
+}
+
+//calculate the sum of bid and asks orders
+func calcOrderSum(depth1 *Depth) {
+	for _, v := range depth1.Bids {
+		bidOrder, err := strconv.ParseFloat(v[1], 64)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		depth1.BidsOrderSum += bidOrder
+	}
+	for _, v := range depth1.Asks {
+		askOrder, err := strconv.ParseFloat(v[1], 64)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		depth1.AsksOrderSum += askOrder
+	}
 }

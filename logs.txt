@@ -1,0 +1,25 @@
+2021/08/15 16:32:19 Get "https://api.binance.comr3r/api/v3/depth?symbol=BTCUSDT&limit=5": dial tcp: lookup api.binance.comr3r: no such host
+2021/08/15 16:34:14 empty symbol
+2021/08/15 16:34:51 empty symbol
+2021/08/15 16:37:54 invalid limit
+2021/08/15 16:38:08 invalid limit
+2021/08/15 16:58:58 invalid limit
+2021/08/15 18:17:26 {0xc000194160}
+2021/08/15 18:18:42 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/15 18:20:12 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/15 18:23:55 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/15 18:24:06 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 10:37:05 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 10:37:14 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:03:49 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:03:49 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:04:37 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:04:37 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:25:08 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:25:08 {"code":-1121,"msg":"Invalid symbol."}
+2021/08/16 11:25:23 <nil>
+2021/08/16 11:25:29 {"code":-1100,"msg":"Illegal characters found in parameter 'symbol'; legal range is '^[A-Z0-9-_.]{1,20}$'."}
+2021/08/16 11:25:29 {"code":-1100,"msg":"Illegal characters found in parameter 'symbol'; legal range is '^[A-Z0-9-_.]{1,20}$'."}
+2021/08/16 11:26:36 <nil>
+2021/08/16 11:27:05 {"code":-1105,"msg":"Parameter 'symbol' was empty."}
+2021/08/16 11:27:05 {"code":-1105,"msg":"Parameter 'symbol' was empty."}
