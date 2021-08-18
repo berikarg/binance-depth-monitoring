@@ -9,7 +9,6 @@ import (
 
 	"example.com/binance-api-test/binance"
 	"github.com/gorilla/websocket"
-	"golang.org/x/net/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -46,18 +45,18 @@ func Writer(conn *websocket.Conn) {
 			// print out that we are updating the stats
 			fmt.Printf("Updating Stats: %+v\n", t)
 			// and retrieve the subscribers
-			items, err := binance.GetDepth()
+			depth, err := binance.GetDepth("BTCUSDT", 5)
 			if err != nil {
 				fmt.Println(err)
 			}
 			// next we marshal our response into a JSON string
-			jsonString, err := json.Marshal(items)
+			depthString, err := json.Marshal(depth)
 			if err != nil {
 				fmt.Println(err)
 			}
 			// and finally we write this JSON string to our WebSocket
 			// connection and record any errors if there has been any
-			if err := conn.WriteMessage(websocket.TextMessage, []byte(jsonString)); err != nil {
+			if err := conn.WriteMessage(websocket.TextMessage, []byte(depthString)); err != nil {
 				fmt.Println(err)
 				return
 			}

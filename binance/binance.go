@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Depth struct {
@@ -19,21 +17,15 @@ type Depth struct {
 }
 
 // returns depth of a symbol for limits between 1 and 100
-func GetDepth(c *gin.Context) {
+func GetDepth(symbol string, limit int) (Depth, error) {
 	var endUrl string
 	depth1 := Depth{}
 	url := "https://api.binance.com/api/v3/depth"
-	symbol := c.Param("symbol")
-	limit, err := strconv.Atoi(c.Param("limit"))
-	if err != nil {
-		log.Print(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid parameter limit"})
-		return
-	}
+
 	if limit <= 0 || limit > 100 {
+		err := errors.New("invalid limit range")
 		log.Print(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid limit range"})
-		return
+		return depth1, err
 	}
 	endUrl = "?symbol=" + symbol // if symbol is not 5, 10, 20, 50 it will return 100
 	endUrl = endUrl + "&limit=" + strconv.Itoa(limit)
@@ -42,14 +34,12 @@ func GetDepth(c *gin.Context) {
 	body, err := makeGetRequest(url)
 	if err != nil {
 		log.Print(err)
-		c.String(http.StatusBadRequest, err.Error())
-		return
+		return depth1, err
 	}
 	err = json.Unmarshal(body, &depth1)
 	if err != nil {
 		log.Print(err)
-		c.String(http.StatusInternalServerError, err.Error())
-		return
+		return depth1, err
 	}
 
 	if len(depth1.Bids) > limit {
@@ -59,7 +49,7 @@ func GetDepth(c *gin.Context) {
 
 	calcOrderSum(&depth1)
 
-	c.IndentedJSON(http.StatusOK, depth1)
+	return depth1, err
 }
 
 func makeGetRequest(url string) ([]byte, error) {

@@ -23,3 +23,11 @@
 2021/08/16 11:26:36 <nil>
 2021/08/16 11:27:05 {"code":-1105,"msg":"Parameter 'symbol' was empty."}
 2021/08/16 11:27:05 {"code":-1105,"msg":"Parameter 'symbol' was empty."}
+2021/08/18 12:34:39 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 12:42:08 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 12:42:26 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 12:42:27 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 12:42:28 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 12:42:28 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 15:05:06 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
+2021/08/18 15:06:01 websocket: the client is not using the websocket protocol: 'upgrade' token not found in 'Connection' header
