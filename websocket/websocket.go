@@ -1,4 +1,4 @@
-package websocket
+package websocketbinance
 
 import (
 	"encoding/json"

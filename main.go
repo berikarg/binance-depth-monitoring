@@ -6,21 +6,21 @@ import (
 	"net/http"
 	"os"
 
-	"example.com/binance-api-test/websocket"
+	websocketbinance "example.com/binance-api-test/websocket"
 )
 
 func depth(w http.ResponseWriter, r *http.Request) {
 	// we call our new websocket package Upgrade
 	// function in order to upgrade the connection
 	// from a standard HTTP connection to a websocket one
-	ws, err := websocket.Upgrade(w, r)
+	ws, err := websocketbinance.Upgrade(w, r)
 	if err != nil {
 		fmt.Fprintf(w, "%+v\n", err)
 	}
 	// we then call our Writer function
 	// which continually polls and writes the results
 	// to this websocket connection
-	go websocket.Writer(ws)
+	go websocketbinance.Writer(ws)
 }
 
 func setupRoutes() {

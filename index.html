@@ -15,13 +15,19 @@
   </head>
   <body>
     <div class="container">
-      <h2>Show Depth</h2>
-      <h1 id="depth"></h1>
+      <h2>Bids order sum</h2>
+      <h1 id="bidsOrderSum"></h1>
+      <h2>Bids</h2>
+      <p id="bids"></p>
+      <h2>Asks order sum</h2>
+      <h1 id="asksOrderSum"></h1>
+      <h2>Asks</h2>
+      <p id="asks"></p>
     </div>
 
     <script>
       let depth = {};
-      const websocket = new WebSocket("ws://localhost:8080/");
+      const websocket = new WebSocket("ws://localhost:8080/depth");
 
       websocket.onopen = function(event) {
         console.log("Successfully connected to websocket server");
@@ -37,8 +43,14 @@
         depth = JSON.parse(event.data);
         // populate our `sub` element with the total subscriber counter for our
         // channel
-        document.getElementById("depth").innerText =
+        document.getElementById("bidsOrderSum").innerText =
           depth.BidsOrderSum;
+        document.getElementById("bids").innerText =
+          depth.Bids;
+        document.getElementById("asksOrderSum").innerText =
+          depth.AsksOrderSum;
+        document.getElementById("asks").innerText =
+          depth.Asks;
       };
     </script>
   </body>
