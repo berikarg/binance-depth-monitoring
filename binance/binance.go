@@ -1,4 +1,4 @@
-package binance
+package binancedepth
 
 import (
 	"encoding/json"
