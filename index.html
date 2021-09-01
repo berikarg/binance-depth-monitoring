@@ -15,6 +15,17 @@
     <title>Document</title>
   </head>
   <body>
+    <div id="formBody">
+
+      <form method="POST" id="inputForm">
+  
+          <label for="symbol">Symbol</label>
+          <input id="symbol" name="symbol" placeholder="Enter symbol here" type="text">
+          <label for="limit">Limit</label>
+          <input id="limit" name="limit" placeholder="Enter limit here" type="text">
+      </form>
+    </div>
+    
     <div class="container">
       <h1>Bids</h1>
       <h3 id="BidOrdersDepth"></h3>
@@ -28,13 +39,31 @@
 
     <script>
       function getDepth(){
-        $.getJSON('http://localhost:8080/depth', function (depthJSON) {
+        var symbolForm = $("#symbol").serialize();
+        var limitForm = $("#limit").serialize();
 
-          $('#BidOrdersDepth').text(JSON.stringify(depthJSON.bids))
-          $('#BidOrdersSum').text(depthJSON.BidsOrderSum)
-          $('#AskOrdersDepth').text(JSON.stringify(depthJSON.asks))
-          $('#AskOrdersSum').text(depthJSON.AsksOrderSum)
+        $.ajax({
+          type: "POST",
+          url: 'http://localhost:8080/depth',
+          data: {symbol: symbolForm, limit: limitForm},
+          dataType: 'json',
+          success: function (depth) {
+            $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
+            $('#BidOrdersSum').text(depth.BidsOrderSum)
+            $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
+            $('#AskOrdersSum').text(depth.AsksOrderSum)
+          }
         });
+
+        /*
+        $.post('http://localhost:8080/depth', {symbol: symbolForm, limit: limitForm}, function (depth) {
+        //$.post('http://localhost:8080/depth', $("#symbol").serialize(), function (depth) {
+          $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
+          $('#BidOrdersSum').text(depth.BidsOrderSum)
+          $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
+          $('#AskOrdersSum').text(depth.AsksOrderSum)
+        });
+        */
       }
       setInterval(getDepth, 3000)
     </script>
