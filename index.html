@@ -17,7 +17,7 @@
   <body>
     <div id="formBody">
 
-      <form method="POST" id="inputForm">
+      <form method="POST" id="inputForm" style="display: flex; justify-content: center;">
   
           <label for="symbol">Symbol</label>
           <input id="symbol" name="symbol" placeholder="Enter symbol here" type="text">
@@ -26,7 +26,7 @@
       </form>
     </div>
     
-    <div class="container">
+    <div class="container" id="depthContainer">
       <h1>Bids</h1>
       <h3 id="BidOrdersDepth"></h3>
       <h1>Bid Orders Sum</h1>
@@ -35,6 +35,10 @@
       <h3 id="AskOrdersDepth"></h3>
       <h1>Ask Orders Sum</h1>
       <h3 id="AskOrdersSum"></h3>
+    </div>
+
+    <div id="errorContainer">
+      <h1 id="errorMessage"></h1>
     </div>
 
     <script>
@@ -53,19 +57,18 @@
             $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
             $('#AskOrdersSum').text(depth.AsksOrderSum)
           }
+          /*
+          statusCode: {
+            400: function () {
+              //$('#depthContainer').style.display = 'none'
+              //$('#errorContainer').style.display = 'block'
+              console.log("Something")
+              $('#BidOrdersDepth').text("Error: Symbol or limit are invalid");
+            }
+          }*/
         });
-
-        /*
-        $.post('http://localhost:8080/depth', {symbol: symbolForm, limit: limitForm}, function (depth) {
-        //$.post('http://localhost:8080/depth', $("#symbol").serialize(), function (depth) {
-          $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
-          $('#BidOrdersSum').text(depth.BidsOrderSum)
-          $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
-          $('#AskOrdersSum').text(depth.AsksOrderSum)
-        });
-        */
       }
-      setInterval(getDepth, 3000)
+      setInterval(getDepth, 2000)
     </script>
   </body>
 </html>
