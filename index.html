@@ -12,7 +12,7 @@
       crossorigin="anonymous"
     />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <title>Document</title>
+    <title>Document</title> 
   </head>
   <body>
     <div id="formBody">
@@ -38,37 +38,35 @@
     </div>
 
     <div id="errorContainer">
-      <h1 id="errorMessage"></h1>
+      <h2 id="errorMessage"></h2>
     </div>
-
-    <script>
-      function getDepth(){
-        var symbolForm = $("#symbol").serialize();
-        var limitForm = $("#limit").serialize();
-
-        $.ajax({
-          type: "POST",
-          url: 'http://localhost:8080/depth',
-          data: {symbol: symbolForm, limit: limitForm},
-          dataType: 'json',
-          success: function (depth) {
-            $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
-            $('#BidOrdersSum').text(depth.BidsOrderSum)
-            $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
-            $('#AskOrdersSum').text(depth.AsksOrderSum)
-          }
-          /*
-          statusCode: {
-            400: function () {
-              //$('#depthContainer').style.display = 'none'
-              //$('#errorContainer').style.display = 'block'
-              console.log("Something")
-              $('#BidOrdersDepth').text("Error: Symbol or limit are invalid");
-            }
-          }*/
-        });
-      }
-      setInterval(getDepth, 2000)
-    </script>
   </body>
+  <script>
+    function getDepth(){
+    var symbolForm = $("#symbol").serialize();
+    var limitForm = $("#limit").serialize();
+
+    $.ajax({
+      type: "POST",
+      url: 'http://localhost:8080/depth',
+      data: {symbol: symbolForm, limit: limitForm},
+      dataType: 'json',
+      success: function (depth) {
+        $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
+        $('#BidOrdersSum').text(depth.BidsOrderSum)
+        $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
+        $('#AskOrdersSum').text(depth.AsksOrderSum)
+      },
+      statusCode: {
+        400: function (response) {
+          document.querySelector('h1').style.display = "none";
+          //$('#errorContainer').style.display = 'block'
+          console.log("Something")
+          $('#errorMessage').text("Invalid symbol or limit")
+        }
+      }
+    });
+  }
+  setInterval(getDepth, 2000)
+  </script>
 </html>

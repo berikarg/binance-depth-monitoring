@@ -50,12 +50,15 @@ func showDepth(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.FormValue("limit")
 	symbol = strings.TrimPrefix(symbol, "symbol=") //for some reason ParseForm() unnecessarily adds keys
 	limitStr = strings.TrimPrefix(limitStr, "limit=")
-
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(nil)
+		resp, err := json.Marshal(map[string]string{"message": "Symbol or limit are invalid"})
+		if err != nil {
+			log.Println("Marshal:", err)
+		}
+		w.Write(resp)
 		return
 	}
 
@@ -65,8 +68,8 @@ func showDepth(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
-			//resp, _ := json.Marshal(map[string]string{"message": "Error! Symbol or limit are invalid"})
-			w.Write(nil)
+			resp, _ := json.Marshal(map[string]string{"message": "Binance: Symbol or limit are invalid"})
+			w.Write(resp)
 			return
 		}
 	}
