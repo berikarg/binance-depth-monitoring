@@ -11,47 +11,62 @@
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
       crossorigin="anonymous"
     />
-    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Document</title> 
   </head>
   <body>
-    <div class="container">
-      <h2>Bids order sum</h2>
-      <h1 id="bidsOrderSum"></h1>
-      <h2>Bids</h2>
-      <p id="bids"></p>
-      <h2>Asks order sum</h2>
-      <h1 id="asksOrderSum"></h1>
-      <h2>Asks</h2>
-      <p id="asks"></p>
+    <div id="formBody">
+
+      <form method="POST" id="inputForm" style="display: flex; justify-content: center;">
+  
+          <label for="symbol">Symbol</label>
+          <input id="symbol" name="symbol" placeholder="Enter symbol here" type="text">
+          <label for="limit">Limit</label>
+          <input id="limit" name="limit" placeholder="Enter limit here" type="text">
+      </form>
+    </div>
+    
+    <div class="container" id="depthContainer">
+      <h1>Bids</h1>
+      <h3 id="BidOrdersDepth"></h3>
+      <h1>Bid Orders Sum</h1>
+      <h3 id="BidOrdersSum"></h3>
+      <h1>Asks</h1>
+      <h3 id="AskOrdersDepth"></h3>
+      <h1>Ask Orders Sum</h1>
+      <h3 id="AskOrdersSum"></h3>
     </div>
 
-    <script>
-      let depth = {};
-      const websocket = new WebSocket("ws://localhost:8080/depth");
-
-      websocket.onopen = function(event) {
-        console.log("Successfully connected to websocket server");
-      };
-
-      websocket.onerror = function(error) {
-        console.log("Error connecting to websocket server");
-        console.log(error);
-      };
-
-      websocket.onmessage = function(event) {
-        // parse the event data sent from our websocket server
-        depth = JSON.parse(event.data);
-        // populate our `sub` element with the total subscriber counter for our
-        // channel
-        document.getElementById("bidsOrderSum").innerText =
-          depth.BidsOrderSum;
-        document.getElementById("bids").innerText =
-          depth.Bids;
-        document.getElementById("asksOrderSum").innerText =
-          depth.AsksOrderSum;
-        document.getElementById("asks").innerText =
-          depth.Asks;
-      };
-    </script>
+    <div id="errorContainer">
+      <h2 id="errorMessage"></h2>
+    </div>
   </body>
+  <script>
+    function getDepth(){
+    var symbolForm = $("#symbol").serialize();
+    var limitForm = $("#limit").serialize();
+
+    $.ajax({
+      type: "POST",
+      url: 'http://localhost:8080/depth',
+      data: {symbol: symbolForm, limit: limitForm},
+      dataType: 'json',
+      success: function (depth) {
+        $('#BidOrdersDepth').text(JSON.stringify(depth.bids))
+        $('#BidOrdersSum').text(depth.BidsOrderSum)
+        $('#AskOrdersDepth').text(JSON.stringify(depth.asks))
+        $('#AskOrdersSum').text(depth.AsksOrderSum)
+      },
+      statusCode: {
+        400: function (response) {
+          document.querySelector('h1').style.display = "none";
+          //$('#errorContainer').style.display = 'block'
+          console.log("Something")
+          $('#errorMessage').text("Invalid symbol or limit")
+        }
+      }
+    });
+  }
+  setInterval(getDepth, 2000)
+  </script>
 </html>
